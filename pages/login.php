@@ -6,6 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="icon" href="../images/favicon.jpg">
 </head>
 <body>
     <?php
@@ -24,13 +25,19 @@
             $sql = "SELECT id, username, password FROM users WHERE username = \"".$_POST["username"]."\"";
             $result = mysqli_query($link, $sql);
             $row = $result->fetch_row();
-            if($row[2] == $_POST["password"]) {
-                $_SESSION["loggedin"] = true;
-                $_SESSION["username"] = $_POST["username"];
+            if(!empty($row)) {
+                if($row[2] == $_POST["password"]) {
+                    $_SESSION["loggedin"] = true;
+                    $_SESSION["username"] = $_POST["username"];
+                    header("location: total-spending.php");
+                    exit;
+                } else {
+                    echo "<h1>Wrong username or password</h1>";
+                }
+            } else {
+                echo "<h1>Wrong username or password</h1>";
             }
-        } else {
-            echo "<h1>Try again dummy</h1>";
-        }
+        } 
      
 
     ?>

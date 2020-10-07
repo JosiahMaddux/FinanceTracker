@@ -4,6 +4,7 @@
 	<head>
 		<title>Super Budget Tracker</title>
 		<link rel="stylesheet" href="css/main.css"/>
+		<link rel="icon" href="images/favicon.jpg">
 	</head>
 	<body>
 	<?php
