@@ -5,6 +5,7 @@
         <title>Spending Transactions</title>
         <link rel="stylesheet" href="../css/main.css"/>
         <link rel="stylesheet" href="../css/transactions.css"/>
+        <link rel="icon" href="../images/favicon.jpg">
     </head>
     <body>
         <?php
