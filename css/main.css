@@ -1,0 +1,38 @@
+main {
+	width: 70%;
+	margin: 0 auto;
+	border: black solid 1px;
+	background-color: #bdd4eb;
+	padding: 20px;
+}
+
+img#main {
+	width: 100%;
+}
+
+body {
+	background-color: #1393a0;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+	background-color: white;
+}
+
+nav > a, nav > a.active {
+	color: black;
+	text-decoration: none;
+	padding: 0px 10px;
+}
+
+nav {
+	background-color: white;
+	padding: 10px;
+	text-align: center;
+	border: black solid 1px;
+	margin-bottom: 20px;
+}
+
+#contact-form > label, #contact-form > input, #contact-form > textarea {
+	margin-bottom: 5px;
+}

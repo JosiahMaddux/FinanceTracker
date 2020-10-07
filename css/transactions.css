@@ -1,0 +1,34 @@
+table {
+    width: 80%;
+    margin: 0 auto;
+}
+
+table, td, th {
+    border: black solid 1px;
+    border-collapse: collapse;
+}
+
+form {
+    width: 80%;
+    margin: 0 auto;
+}
+
+td > input, td > select {
+    border: none;
+    margin: none;
+    padding: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+td > button {
+    width: 48.75%;
+}
+
+/* td > input {
+    border: none;
+    margin: none;
+    padding: none;
+    width: 100%;
+    box-sizing: border-box;
+} */
