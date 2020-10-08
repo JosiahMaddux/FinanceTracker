@@ -29,7 +29,40 @@
 						$password = '';
 						$link = mysqli_connect($host, $user, $password);
 						mysqli_select_db($link, "Final_Josiah_Maddux");
-						$query = 'SELECT Categories.CategoryName, Categories.Ammount, Sum(SpendingTransactions.Ammount) AS SumOfAmmount, Categories.Ammount-Sum(SpendingTransactions.Ammount) AS Difference FROM Categories INNER JOIN SpendingTransactions ON Categories.CategoryName = SpendingTransactions.Category GROUP BY Categories.CategoryName, Categories.Ammount;';
+						$query = 'SELECT
+									CategoryName,
+									Ammount,
+									SumOfAmmount,
+									Ammount - SumOfAmmount AS Leftover
+								FROM (
+									SELECT
+										Categories.CategoryName,
+										Categories.Ammount, 
+										IFNULL(Sum(SpendingTransactions.Ammount), 0) AS SumOfAmmount
+									FROM
+										Categories 
+									LEFT JOIN SpendingTransactions ON Categories.CategoryName = SpendingTransactions.Category
+									GROUP BY
+									Categories.CategoryName,
+									Categories.Ammount
+								) AS budget
+								UNION SELECT
+									"Total:" AS CategoryName,
+									Sum(Ammount) AS Ammount,
+									Sum(SumOfAmmount) AS SumOfAmmount,
+									Sum(Ammount - SumOfAmmount) AS Leftover
+								FROM (
+									SELECT
+										Categories.CategoryName,
+										Categories.Ammount, 
+										IFNULL(Sum(SpendingTransactions.Ammount), 0) AS SumOfAmmount
+									FROM
+										Categories 
+									LEFT JOIN SpendingTransactions ON Categories.CategoryName = SpendingTransactions.Category
+									GROUP BY
+									Categories.CategoryName,
+									Categories.Ammount
+								) AS budget';
 						$result = mysqli_query($link, $query);
 						if(!empty($result->num_rows)) {
                             for($i = 0; $i < $result->num_rows; $i++) {
