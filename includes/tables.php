@@ -2,19 +2,39 @@
 // This file automatically creates tables on the DB if they do not already exist
 
 // Connect to server
+// You have to have a DB named finance_tracker
 include "db-server.php";
 
-// Create DB
-$query = 'CREATE DATABASE IF NOT EXISTS Final_Josiah_Maddux;';
-$result = mysqli_query($link, $query);
-$databaseName = 'Final_Josiah_Maddux';
-$databaseSelected = mysqli_select_db($link, $databaseName);
-
-// Create catagories table
-$query = 'CREATE TABLE IF NOT EXISTS Categories (CategoryName VARCHAR(50) PRIMARY KEY, Ammount FLOAT);';
+// Create Users table
+$query = 'CREATE TABLE IF NOT EXISTS Users
+    (ID INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP);';
 $result = mysqli_query($link, $query);
 
-// Create a spending table for each month of the year
-    $query = 'CREATE TABLE IF NOT EXISTS SpendingTransactions (TransactionID INT(4) UNSIGNED AUTO_INCREMENT PRIMARY KEY, ItemDescription VARCHAR(250), Category VARCHAR(50), Ammount FLOAT, TransactionDate VARCHAR(20), FOREIGN KEY (Category) REFERENCES Categories(CategoryName));';
-    $result = mysqli_query($link, $query);
+// Create Budgets table
+$query = 'CREATE TABLE IF NOT EXISTS Budgets
+    (ID INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    UserID INT UNSIGNED NOT NULL REFERENCES Users(ID),
+    BudgetName VARCHAR(64));';
+$result = mysqli_query($link, $query);
+
+// Create BudgetCatagories table
+$query = 'CREATE TABLE IF NOT EXISTS BudgetCategories
+    (ID INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    BudgetID INT UNSIGNED NOT NULL REFERENCES Budgets(ID),
+    Category VARCHAR(64),
+    Ammount DECIMAL(12, 2));';
+$result = mysqli_query($link, $query);
+
+// Create SpendingTransactions table
+$query = 'CREATE TABLE IF NOT EXISTS SpendingTransactions
+    (TransactionID INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    UserID INT UNSIGNED NOT NULL REFERENCES Users(ID),
+    ItemDescription VARCHAR(255),
+    Category VARCHAR(64) REFERENCES BudgetCategories(Category),
+    Ammount DECIMAL(12, 2),
+    TransactionDate VARCHAR(20));';
+$result = mysqli_query($link, $query);
 ?>

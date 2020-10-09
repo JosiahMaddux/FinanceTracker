@@ -28,7 +28,8 @@
             if(!empty($row)) {
                 if($row[2] == $_POST["password"]) {
                     $_SESSION["loggedin"] = true;
-                    $_SESSION["username"] = $_POST["username"];
+                    $_SESSION["username"] = $_row[1];
+                    $_SESSION["ID"] = $row[0];
                     header("location: total-spending.php");
                     exit;
                 } else {

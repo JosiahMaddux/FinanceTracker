@@ -1,4 +1,47 @@
-<?php include "../includes/login-check.php" ?>
+<?php 
+	include "../includes/login-check.php";
+	include "../includes/db-server.php";
+
+	function makeFormforNewBudget() {
+		echo 	'<form action="#" method="POST">
+				<label for="">Budget Name</label>
+				<input type="text" id="budget-name" name="create-budget-name">
+				<button type="submit">Create Budget</button>
+				</form>';
+	}
+
+	function makeBudgetTable($BudgetID) {
+		echo '<table><tr><th>Catagory Name</th><th>Budget Ammount</th><th>Actions</th></tr>';
+		$query = 'SELECT * FROM BudgetCategories WHERE BudgetID = '.$BudgetID.';';
+		$result = mysqli_query($GLOBALS['link'], $query);
+		if(!empty($result->num_rows)) {
+			for($i = 0; $i < $result->num_rows; $i++) {
+				$row = $result->fetch_assoc();
+				echo '<tr id="row-'.$row["Category"].'">';
+				echo '<td>'.$row["Category"].'</td>'.'<td>$'.$row["Ammount"].'</td>'.'<td><button onclick="EditRecord(\''.$row["Category"].'\', \'$'.$row["Ammount"].'\')">Edit</button><button form="del-form" type="submit" name="submit" value="delete'.$row["Category"].'">Delete</button></td>';
+				echo '</tr>';
+			}
+		}
+		echo '<tr id="insertRow">
+				<form action="#" method="POST" id="main-form" autocomplete="off">
+				<td><input type="text" name="Category"></td>
+				<td><input type="text" name="Ammount" required></td>
+				<td><button type="submit" name="submit-budget" value="'.$BudgetID.'">Enter</button></td>
+				</form>
+			</tr>
+			</table>';
+	}
+
+	function insertIntoBudgetsTable($UserID, $BudgetName) {
+		$query = 'INSERT INTO Budgets (UserID, BudgetName) VALUES ('.$UserID.' ,'.$BudgetName.');';
+		$result = mysqli_query($GLOBALS["link"], $query);
+	}
+
+	function insertIntoBudgetCategoriesTable($BudgetID, $Category, $Ammount) {
+		$query = 'INSERT INTO BudgetCategories (BudgetID, Category, Ammount) VALUES ('.$BudgetID.', "'.$Category.'", '.$Ammount.');';
+		$result = mysqli_query($GLOBALS["link"], $query);
+	}
+?>
 <!DOCTYPE HTML>
 <html>
 	<head>
@@ -8,30 +51,6 @@
 		<link rel="icon" href="../images/favicon.jpg">
 	</head>
 	<body>
-	<?php
-		include "../includes/tables.php";
-	?>
-	<!--The below script processes the submission of the forms on this page-->
-	<script src="../js/Budgets.js"></script>
-	<?php
-		$host = 'localhost';
-		$user = 'root';
-		$password ='';
-		$database = 'Final_Josiah_Maddux';
-		$link = mysqli_connect($host, $user, $password, $database);
-		if(!empty($_POST)) {
-			if($_POST["submit"] == 'insert') {
-				$query = 'INSERT INTO Categories (CategoryName, Ammount) VALUES ("'.$_POST["Category"].'", '.$_POST["Ammount"].')';
-				$result = mysqli_query($link, $query);
-			} else if(substr($_POST["submit"], 0, 6) == 'delete') {
-				$query = 'DELETE FROM Categories WHERE CategoryName="'.substr($_POST["submit"], 6).'"';
-				$result = mysqli_query($link, $query);
-			} else if(substr($_POST["submit"], 0, 6) == 'update') {
-				$query = 'UPDATE Categories set CategoryName="'.$_POST["Category"].'", Ammount='.$_POST["Ammount"].' WHERE CategoryName="'.substr($_POST['submit'], 6).'"';
-				$result = mysqli_query($link, $query);
-			}
-		} 
-	?>
 		<main>
 			<img src="../images/main.png" id="main" alt="">
 			<nav>
@@ -43,30 +62,48 @@
                 <a href="logout.php">Logout</a>
 			</nav>
 			<section>
-				<table>
-					<tr><th>Catagory Name</th><th>Budget Ammount</th><th>Actions</th></tr>
+			<form action="#" method="POST">
+				<select name="select">
+					<option value="new">Create a New Budget</option>
 					<?php
-						$query = 'SELECT * FROM Categories;';
+						$query = 'SELECT * FROM Budgets WHERE UserID = '.$_SESSION["ID"].';';
 						$result = mysqli_query($link, $query);
-						if(!empty($result->num_rows)) {
-							for($i = 0; $i < $result->num_rows; $i++) {
-								$row = $result->fetch_row();
-								echo '<tr id="row-'.$row[0].'">';
-								echo '<td>'.$row[0].'</td>'.'<td>$'.number_format($row[1], 2).'</td>'.'<td><button onclick="EditRecord(\''.$row[0].'\', \'$'.number_format($row[1], 2).'\')">Edit</button><button form="del-form" type="submit" name="submit" value="delete'.$row[0].'">Delete</button></td>';
-								echo '</tr>';
-							}
+						for($i = 0; $i < $result->num_rows; $i++) {
+							$row = $result->fetch_row();
+							echo '<option value="'.$row[0].'">';
+							echo $row[2];
+							echo '</option>';
 						}
 					?>
-					<tr id="insertRow">
-						<form action="#" method="POST" id="main-form" autocomplete="off">
-							<td><input type="text" name="Category"></td>
-							<td><input type="text" name="Ammount" required></td>
-							<td><button type="submit" name="submit" value="insert">Enter</button></td>
-						</form>
-					</tr>
-				</table>
+				</select>
+				<button type="submit">Go</button>
+			</form>
+			<!-- Form processer -->
+			<?php
+				// Check to form has been submitted
+				if(!empty($_POST)) {
+
+					// If create a budget was selected, print a form for the new budget
+					if(!empty($_POST["select"]) && $_POST["select"] == "new") {
+						makeFormforNewBudget();
+
+					// If a budget was selected, show that budget as a table
+					} else if (!empty($_POST["select"]) && $_POST["select"] != "new") {
+						makeBudgetTable($_POST["select"]);
+
+					// If rows from a budget table were added, process it in the DB
+					} else if(!empty($_POST["submit-budget"])) {
+						insertIntoBudgetCategoriesTable($_POST["submit-budget"], $_POST["Category"], $_POST["Ammount"]);
+						makeBudgetTable($_POST["submit-budget"]);
+					}
+
+					// This will procress the creation of the new budget
+					if(!empty($_POST["create-budget-name"])) {
+						insertIntoBudgetsTable($_SESSION["ID"], $_POST["create-budget-name"]);
+					}
+				}
+			?>
 			</section>
 		</main>
 	</body>
-	<form action="#" method="POST" id="del-form"></form>
 </html>

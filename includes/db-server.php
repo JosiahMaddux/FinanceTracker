@@ -2,5 +2,6 @@
     $host = 'localhost';
     $user = 'root';
     $password = '';
-    $link = mysqli_connect($host, $user, $password);
+    $database = 'finance_tracker';
+    $link = mysqli_connect($host, $user, $password, $database);
 ?>
