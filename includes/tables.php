@@ -30,8 +30,8 @@ $result = mysqli_query($link, $query);
 
 // Create SpendingTransactions table
 $query = 'CREATE TABLE IF NOT EXISTS SpendingTransactions
-    (TransactionID INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    UserID INT UNSIGNED NOT NULL REFERENCES Users(ID),
+    (ID INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    BudgetID INT UNSIGNED NOT NULL REFERENCES Budgets(ID),
     ItemDescription VARCHAR(255),
     Category VARCHAR(64) REFERENCES BudgetCategories(Category),
     Ammount DECIMAL(12, 2),

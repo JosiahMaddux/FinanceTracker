@@ -1,7 +1,8 @@
 // Global variables
 let temp;
-let selectedRow
-let selectedCategory
+let selectedRow;
+let selectedCategory;
+var budget;
 
 // This function makes a row of the table ediable
 function EditRecord(recordID, description, category, ammount, date) {
@@ -14,7 +15,7 @@ function EditRecord(recordID, description, category, ammount, date) {
     }
 
 
-    selectedRow = document.getElementById(("row" + recordID));
+    selectedRow = document.getElementById(recordID);
     let insertRow = document.getElementById("insertRow");
     temp = selectedRow.innerHTML;
     selectedRow.innerHTML = 
@@ -27,7 +28,8 @@ function EditRecord(recordID, description, category, ammount, date) {
                                 </td>
                                 <td><input type="text" form="update-form" name="Ammount" value="${ammount}" id="Ammount" required></td>
                                 <td><input type="text" form="update-form" name="Date" value="${date}" id="Date" pattern="(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)\\d\\d" title="MM/DD/YYYY"></td>
-                                <td><button type="submit" form="update-form" name="submit" value="update${recordID}">Update</button><button type="reset" form="update-form" onclick="window.location.reload()">Cancel</button></td>
+                                <td><button type="submit" form="update-form" name="update-on-transactions" value="${recordID}">Update</button><button type="reset" form="update-form" onclick="window.location.reload()">Cancel</button></td>
+                                <input type="hidden" name="budget-ID" value="${budgetID}" form="update-form">
                             </form>
                             `;
     selectedCategory = document.getElementById(("cat-" + category));
@@ -36,3 +38,6 @@ function EditRecord(recordID, description, category, ammount, date) {
 
 }
 
+function setBudgetID(arg) {
+    budgetID = arg;
+}

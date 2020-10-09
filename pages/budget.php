@@ -10,15 +10,15 @@
 				</form>';
 	}
 
-	function makeBudgetTable($BudgetID) {
+	function makeBudgetTable($budgetID) {
 		echo '<table><tr><th>Catagory Name</th><th>Budget Ammount</th><th>Actions</th></tr>';
-		$query = 'SELECT * FROM BudgetCategories WHERE BudgetID = '.$BudgetID.';';
+		$query = 'SELECT * FROM BudgetCategories WHERE BudgetID = '.$budgetID.';';
 		$result = mysqli_query($GLOBALS['link'], $query);
 		if(!empty($result->num_rows)) {
 			for($i = 0; $i < $result->num_rows; $i++) {
 				$row = $result->fetch_assoc();
-				echo '<tr id="row-'.$row["Category"].'">';
-				echo '<td>'.$row["Category"].'</td>'.'<td>$'.$row["Ammount"].'</td>'.'<td><button onclick="EditRecord(\''.$row["Category"].'\', \'$'.$row["Ammount"].'\')">Edit</button><button form="del-form" type="submit" name="submit" value="delete'.$row["Category"].'">Delete</button></td>';
+				echo '<tr id="'.$row["ID"].'">';
+				echo '<td>'.$row["Category"].'</td>'.'<td>$'.$row["Ammount"].'</td>'.'<td><button onclick="EditRecord(\''.$row["ID"].'\', \''.$row["Category"].'\', \'$'.$row["Ammount"].'\')">Edit</button><button form="del-form" type="submit" name="delete-in-budget" value="'.$row["ID"].'">Delete</button></td>';
 				echo '</tr>';
 			}
 		}
@@ -26,10 +26,12 @@
 				<form action="#" method="POST" id="main-form" autocomplete="off">
 				<td><input type="text" name="Category"></td>
 				<td><input type="text" name="Ammount" required></td>
-				<td><button type="submit" name="submit-budget" value="'.$BudgetID.'">Enter</button></td>
+				<td><button type="submit" name="insert-into-budget" value="'.$budgetID.'">Enter</button></td>
 				</form>
 			</tr>
-			</table>';
+			</table>
+			<script>setBudgetID('.$budgetID.')</script>
+			<form action="#" method="POST" id="del-form"><input type="hidden" name="budget-ID" value="'.$budgetID.'" form="del-form"></form>';
 	}
 
 	function insertIntoBudgetsTable($UserID, $BudgetName) {
@@ -41,6 +43,16 @@
 		$query = 'INSERT INTO BudgetCategories (BudgetID, Category, Ammount) VALUES ('.$BudgetID.', "'.$Category.'", '.$Ammount.');';
 		$result = mysqli_query($GLOBALS["link"], $query);
 	}
+
+	function updateOnBudgetCategoriesTable($ID, $Category, $Ammount) {
+		$query = 'UPDATE BudgetCategories SET Category = "'.$Category.'", Ammount = '.$Ammount.' WHERE ID = '.$ID.';';
+		$result = mysqli_query($GLOBALS["link"], $query);
+	}
+
+	function deleteInBudgetCategoriesTable($ID) {
+		$query = 'DELETE FROM BudgetCategories WHERE ID = '.$ID.';';
+		$result = mysqli_query($GLOBALS["link"], $query);
+	}
 ?>
 <!DOCTYPE HTML>
 <html>
@@ -50,6 +62,7 @@
 		<link rel="stylesheet" href="../css/transactions.css"/>
 		<link rel="icon" href="../images/favicon.jpg">
 	</head>
+	<script src="../js/Budgets.js"></script>
 	<body>
 		<main>
 			<img src="../images/main.png" id="main" alt="">
@@ -92,18 +105,28 @@
 						makeBudgetTable($_POST["select"]);
 
 					// If rows from a budget table were added, process it in the DB
-					} else if(!empty($_POST["submit-budget"])) {
-						insertIntoBudgetCategoriesTable($_POST["submit-budget"], $_POST["Category"], $_POST["Ammount"]);
-						makeBudgetTable($_POST["submit-budget"]);
-					}
+					} else if(!empty($_POST["insert-into-budget"])) {
+						insertIntoBudgetCategoriesTable($_POST["insert-into-budget"], $_POST["Category"], $_POST["Ammount"]);
+						makeBudgetTable($_POST["insert-into-budget"]);
+
+					// If rows from a budget were uodated, process in DB
+					} else if(!empty($_POST["update-on-budget"])) {
+						updateOnBudgetCategoriesTable($_POST["update-on-budget"], $_POST["Category"], $_POST["Ammount"]);
+						makeBudgetTable($_POST["budget-ID"]);
+
+					// If rows from a budget were deleted, process in DB
+					} else if(!empty($_POST["delete-in-budget"])) {
+						deleteInBudgetCategoriesTable($_POST["delete-in-budget"]);
+						makeBudgetTable($_POST["budget-ID"]);
 
 					// This will procress the creation of the new budget
-					if(!empty($_POST["create-budget-name"])) {
+					} else if(!empty($_POST["create-budget-name"])) {
 						insertIntoBudgetsTable($_SESSION["ID"], $_POST["create-budget-name"]);
 					}
 				}
 			?>
 			</section>
 		</main>
+		<!-- This script allows you to make rows editable forms by clicking edit -->
 	</body>
 </html>
