@@ -2,8 +2,25 @@
 	include "../includes/login-check.php";
 	include "../includes/db-server.php";
 
+	function makeBudgetPicker() {
+		echo '<form action="" method="POST">
+				<select name="select">
+					<option value="new">Create a New Budget</option>';
+						$query = 'SELECT * FROM Budgets WHERE UserID = '.$_SESSION["ID"].';';
+						$result = mysqli_query($GLOBALS["link"], $query);
+						for($i = 0; $i < $result->num_rows; $i++) {
+							$row = $result->fetch_row();
+							echo '<option value="'.$row[0].'">';
+							echo $row[2];
+							echo '</option>';
+						}
+		echo		'</select>
+				<button type="submit">Go</button>
+			</form>';
+	}
+
 	function makeFormforNewBudget() {
-		echo 	'<form action="#" method="POST">
+		echo 	'<form action="" method="POST">
 				<label for="">Budget Name</label>
 				<input type="text" id="budget-name" name="create-budget-name">
 				<button type="submit">Create Budget</button>
@@ -23,7 +40,7 @@
 			}
 		}
 		echo '<tr id="insertRow">
-				<form action="#" method="POST" id="main-form" autocomplete="off">
+				<form action="" method="POST" id="main-form" autocomplete="off">
 				<td><input type="text" name="Category"></td>
 				<td><input type="text" name="Ammount" required></td>
 				<td><button type="submit" name="insert-into-budget" value="'.$budgetID.'">Enter</button></td>
@@ -31,7 +48,7 @@
 			</tr>
 			</table>
 			<script>setBudgetID('.$budgetID.')</script>
-			<form action="#" method="POST" id="del-form"><input type="hidden" name="budget-ID" value="'.$budgetID.'" form="del-form"></form>';
+			<form action="" method="POST" id="del-form"><input type="hidden" name="budget-ID" value="'.$budgetID.'" form="del-form"></form>';
 	}
 
 	function insertIntoBudgetsTable($UserID, $BudgetName) {
@@ -75,22 +92,7 @@
                 <a href="logout.php">Logout</a>
 			</nav>
 			<section>
-			<form action="#" method="POST">
-				<select name="select">
-					<option value="new">Create a New Budget</option>
-					<?php
-						$query = 'SELECT * FROM Budgets WHERE UserID = '.$_SESSION["ID"].';';
-						$result = mysqli_query($link, $query);
-						for($i = 0; $i < $result->num_rows; $i++) {
-							$row = $result->fetch_row();
-							echo '<option value="'.$row[0].'">';
-							echo $row[2];
-							echo '</option>';
-						}
-					?>
-				</select>
-				<button type="submit">Go</button>
-			</form>
+			<?php makeBudgetPicker(); ?>
 			<!-- Form processer -->
 			<?php
 				// Check to form has been submitted

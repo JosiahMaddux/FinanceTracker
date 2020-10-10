@@ -18,18 +18,19 @@
     
         // Connect to server
         include "../includes/db-server.php";
-        mysqli_select_db($link, "Final_Josiah_Maddux");
 
         // Process submitted form
         if(!empty($_POST)) {
-            $sql = "SELECT id, username, password FROM users WHERE username = \"".$_POST["username"]."\"";
-            $result = mysqli_query($link, $sql);
-            $row = $result->fetch_row();
-            if(!empty($row)) {
-                if($row[2] == $_POST["password"]) {
+            $stmt = mysqli_prepare($link, "SELECT id, username, password FROM users WHERE username = ?");
+            mysqli_stmt_bind_param($stmt, "s", $_POST["username"]);
+            mysqli_stmt_execute($stmt);
+            mysqli_stmt_bind_result($stmt, $id, $username, $password);
+            mysqli_stmt_fetch($stmt);
+            if(!empty($id)) {
+                if(password_verify($_POST["password"], $password)) {
                     $_SESSION["loggedin"] = true;
-                    $_SESSION["username"] = $_row[1];
-                    $_SESSION["ID"] = $row[0];
+                    $_SESSION["username"] = $username;
+                    $_SESSION["ID"] = $id;
                     header("location: total-spending.php");
                     exit;
                 } else {
@@ -38,6 +39,7 @@
             } else {
                 echo "<h1>Wrong username or password</h1>";
             }
+            mysqli_stmt_close($stmt);
         } 
      
 
