@@ -10,11 +10,9 @@
 						$result = mysqli_query($GLOBALS["link"], $query);
 						for($i = 0; $i < $result->num_rows; $i++) {
 							$row = $result->fetch_row();
-							echo '<option value="'.$row[0].'">';
-							echo $row[2];
-							echo '</option>';
+							echo '<option value="'.$row[0].'">' . $row[2] . '</option>';
 						}
-		echo		'</select>
+		echo	'</select>
 				<button type="submit">Go</button>
 			</form>';
 	}
