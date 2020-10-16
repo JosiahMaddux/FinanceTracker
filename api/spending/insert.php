@@ -11,7 +11,7 @@
     // Get parameter
     $userID = $_SESSION["ID"];
     $budgetID = $_POST["budget-id"];
-    $itemDescription = $_POST["discription"];
+    $itemDescription = $_POST["description"];
     $category = $_POST["category"];
     $ammount = $_POST["ammount"];
     $transactionDate = $_POST["transaction-date"];
@@ -25,7 +25,7 @@
     $stmt->bind_result($result_userID);
     $stmt->fetch();
     if($result_userID == $userID) {
-        $stmt->prepare("INSERT INTO BudgetCategories (BudgetID, ItemDescription, Category, Ammount, TransactionDate) VALUES (?, ?, ?, ?, ?);");
+        $stmt->prepare("INSERT INTO SpendingTransactions (BudgetID, ItemDescription, Category, Ammount, TransactionDate) VALUES (?, ?, ?, ?, ?);");
         $stmt->bind_param("issds", $budgetID, $itemDescription, $category, $ammount, $transactionDate);
         $stmt->execute();
     }
