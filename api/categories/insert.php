@@ -26,5 +26,10 @@
         $stmt->prepare("INSERT INTO BudgetCategories (BudgetID, Category, Ammount) VALUES (?, ?, ?);");
         $stmt->bind_param("isd", $budgetID, $category, $ammount);
         $stmt->execute();
+
+        // return the id of the new row
+        echo $mysqli->insert_id;
     }
+
+
 ?>

@@ -39,7 +39,7 @@ function showBudgetCard() {
 }
 
 
-function makeCategoriesTable(budgetID, callback) {
+function makeCategoriesTable(budgetID) {
 
     // Mark current budget
     currentBudget = budgetID;
@@ -70,7 +70,11 @@ function makeCategoriesTable(budgetID, callback) {
             </table>
         `;
         tableDiv.innerHTML = table.outerHTML;
-        callback();
+        let addCategoryButton = document.createElement("button");
+        addCategoryButton.innerHTML = '+ New Category';
+        addCategoryButton.id = "add-category";
+        addCategoryButton.classList.add("add-button");
+        tableDiv.appendChild(addCategoryButton);
     };
 
     // Send request
@@ -81,7 +85,7 @@ function makeCategoriesTable(budgetID, callback) {
 }
 
 
-function makeTransactionsTable(callback) {
+function makeTransactionsTable() {
     // Create table element
     table = document.createElement("table");
     table.innerHTML = `
@@ -110,31 +114,17 @@ function makeTransactionsTable(callback) {
         tableDiv.innerHTML = table.outerHTML;
 
 
-        callback();
+        let addTransactionButton = document.createElement("button");
+        addTransactionButton.innerHTML = '+ New Transaction';
+        addTransactionButton.id = "add-transaction";
+        addTransactionButton.classList.add("add-button");
+        tableDiv.appendChild(addTransactionButton);
     };
 
     // Send request
     xmlhttp.open("POST", "api/spending/select.php", true);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(`budget-id=${currentBudget}`);
-}
-
-
-function makeAddCategoryButton() {
-    let addCategoryButton = document.createElement("button");
-    addCategoryButton.innerHTML = '+ New Category';
-    addCategoryButton.id = "add-category";
-    addCategoryButton.classList.add("add-button");
-    tableDiv.appendChild(addCategoryButton);
-}
-
-
-function makeAddTransactionButton() {
-    let addTransactionButton = document.createElement("button");
-    addTransactionButton.innerHTML = '+ New Transaction';
-    addTransactionButton.id = "add-transaction";
-    addTransactionButton.classList.add("add-button");
-    tableDiv.appendChild(addTransactionButton);
 }
 
 
@@ -331,10 +321,13 @@ function makeUpdateTransactionForm(RowID) {
 
 function insertIntoCategoriesTable(budgetID, category, amount) {
     let xmlhttp = new XMLHttpRequest();
+    xmlhttp.onload = function () {
+        console.log(this.responseText)
+    }
     xmlhttp.open("POST", "api/categories/insert.php", true);
     xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xmlhttp.send(`budget-id=${budgetID}&category=${category}&ammount=${amount}`);
-    makeCategoriesTable(currentBudget, makeInsertCategoryForm());
+    makeCategoriesTable(currentBudget);
 }
 
 
@@ -391,7 +384,7 @@ budgetLinksList.addEventListener("click", function(event) {
     if(event.target.id.startsWith("budget")) {
         showBudgetCard();
         budgetID = event.target.id.substring(7);
-        makeCategoriesTable(budgetID, makeAddCategoryButton);
+        makeCategoriesTable(budgetID);
     }
 });
 
