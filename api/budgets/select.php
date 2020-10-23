@@ -9,7 +9,7 @@
     $mysqli = $conn->getMysqli();
 
     if(!empty($_SESSION["ID"])) {
-
+        
         // Get parameter
         $userID = $_SESSION["ID"];
 
@@ -23,6 +23,7 @@
         // Send the results as an array of JSON objects
         http_response_code(200);
         echo json_encode($result->fetch_all(MYSQLI_ASSOC));
+        json_encode(array("message" => "Unauthorized Request"));
         
     } else {
 
@@ -30,7 +31,5 @@
         http_response_code(401);
         echo json_encode(array("message" => "Unauthorized Request"));
     }
-    
-
     // What id they have no budgets?
 ?>

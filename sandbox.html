@@ -5,108 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 </head>
-<body id="body">
+<body>
+    <table id="my-table"></table>
+    <script src="js/ui.js"></script>
     <script>
-        
-        // IT WORKS!!!
-        // let body = document.getElementById("body");
-
-        // let id = 1;
-        // let xmlhttp = new XMLHttpRequest();
-        // xmlhttp.onload = function() {
-        //     console.log(this.responseText);
-        //     let response = JSON.parse(this.responseText);
-        //     response.forEach(row => {
-        //         body.innerHTML += `
-        //             <p>${row.ID} = ${row.BudgetName}</p>
-        //         `;
-        //     });
-        // };
-        // xmlhttp.open("GET", "api/budgets/select.php", true);
-        // xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        // xmlhttp.send();
-
-
-
-
-        // IT WORKS!!!
-        // let body = document.getElementById("body");
-
-        // let id = 1;
-        // let xmlhttp = new XMLHttpRequest();
-        // xmlhttp.onload = function() {
-        //     console.log(this.responseText);
-        //     let response = JSON.parse(this.responseText);
-        //     response.forEach(row => {
-        //         body.innerHTML += `
-        //             <p>${row.ID} --- ${row.BudgetID} --- ${row.Category} --- ${row.Ammount}</p>
-        //         `;
-        //     });
-        // };
-        // xmlhttp.open("POST", "api/categories/select.php", true);
-        // xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        // xmlhttp.send(`budget-id=${id}`);
-
-
-
-
-        // IT WORKS!!!
-        // let body = document.getElementById("body");
-
-        // let id = 1;
-        // let xmlhttp = new XMLHttpRequest();
-        // xmlhttp.onload = function() {
-        //     console.log(this.responseText);
-        //     let response = JSON.parse(this.responseText);
-        //     response.forEach(row => {
-        //         body.innerHTML += `
-        //             <p>${row.ID} --- ${row.BudgetID} --- ${row.ItemDescription} --- ${row.TransactionDate} --- ${row.Category} --- ${row.Ammount}</p>
-        //         `;
-        //     });
-        // };
-        // xmlhttp.open("POST", "api/spending/select.php", true);
-        // xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        // xmlhttp.send(`budget-id=${id}`);
-
-
-        // IT WORKS!!!
-        // let body = document.getElementById("body");
-
-        // let id = 1;
-        // let xmlhttp = new XMLHttpRequest();
-        // xmlhttp.onload = function() {
-        //     console.log(this.responseText);
-        //     let response = JSON.parse(this.responseText);
-        //     response.forEach(row => {
-        //         body.innerHTML += `
-        //             <p>${row.Category} --- ${row.Ammount} --- ${row.Total_Spent} --- ${row.Difference}</p>
-        //         `;
-        //     });
-        // };
-        // xmlhttp.open("POST", "api/queries/totalspending.php", true);
-        // xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        // xmlhttp.send(`budget-id=${id}`);
-
-
-        // It works!!
-        // let body = document.getElementById("body");
-
-        // let id = 1;
-        // let xmlhttp = new XMLHttpRequest();
-        
-        // xmlhttp.open("POST", "api/budgets/insert.php", true);
-        // xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        // xmlhttp.send(`budget-name=2020.12`);
-
-
-        let body = document.getElementById("body");
-
-        let id = 1;
-        let xmlhttp = new XMLHttpRequest();
-        
-        xmlhttp.open("POST", "api/budgets/insert.php", true);
-        xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xmlhttp.send(`budget-name=2020.12`);
+        myTable = new Table("my-table");
+        myTable.addHeaders(["love", "trust", "hope"]);
+        myTable.addRow([131, 4343, 34343]);
+        myTable.addRow([131, 4343, 34343]);
+        myTable.addRow([131, 4343, 34343]);
+        myTable.addRow([131, 4343, 34343]);
+        myTable.addHeaders(["love", "trust", "hope", "fun"]);
     </script>
 </body>
 </html>

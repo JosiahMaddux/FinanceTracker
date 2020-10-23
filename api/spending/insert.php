@@ -28,5 +28,8 @@
         $stmt->prepare("INSERT INTO SpendingTransactions (BudgetID, ItemDescription, Category, Ammount, TransactionDate) VALUES (?, ?, ?, ?, ?);");
         $stmt->bind_param("issds", $budgetID, $itemDescription, $category, $ammount, $transactionDate);
         $stmt->execute();
+
+        // return the id of the new row
+        echo $mysqli->insert_id;
     }
 ?>

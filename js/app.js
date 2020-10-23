@@ -1,444 +1,433 @@
-// DOM Variables
+/* CLASSES */
+class Table {
+    constructor(tableID) {
+        this.table = document.getElementById(tableID);
+    }
+
+    // takes an array of ths as strings
+    addHeaders(headers) {
+        let headerRow = '<tr>';
+        headers.forEach(header => {headerRow += `<th>${header}</th>`});
+        headerRow += '</tr>'
+        this.table.innerHTML += headerRow;
+    }
+
+    // takes an array of tds as strings, and an optional ID for the row
+    addRow(rowData, rowID = "row") {
+        let newRow = `<tr id="${rowID}">`;
+        rowData.forEach(td => {newRow += `<td>${td}</td>`});
+        newRow += '</tr>';
+        this.table.innerHTML += newRow;
+    }
+
+    // takes a row ID, and a data array, then updates that row with that array
+    updateRow(rowID, rowData) {
+        let row = document.getElementById(rowID);
+        let updatedRow = '';
+        rowData.forEach(td => {updatedRow += `<td>${td}</td>`});
+        row.innerHTML = updatedRow;
+    }
+
+    // takes an ID of a row, then deletes that row
+    deleteRow(rowID) {
+        document.getElementById(rowID).remove();
+    }
+
+    resetTable() {
+        this.table.innerHTML = '';
+    }
+}
+
+/* VARIABLES */
 let budgetLinksList = document.getElementById("budget-links");
 let budgetCard = document.getElementById("main-card");
 let background = document.getElementById("background");
 let tableDiv = document.getElementById("table-wrapper");
 let navBar = document.getElementById("card-nav");
+let actionArea = document.getElementById("action-area");
+
+// Buttons
+let addCategoryButton = document.getElementById("add-category");
+let editCategoryButton = document.getElementById("edit-category");
+let deleteCategoryButton = document.getElementById("delete-category");
+let cancelAddCategoryButton = document.getElementById("category-add-cancel");
+let cancelUpdateCategoryButton = document.getElementById("category-update-cancel");
+
+let addTransactionButton = document.getElementById("add-transaction");
+let editTransactionButton = document.getElementById("edit-transaction");
+let deleteTransactionButton = document.getElementById("delete-transaction");
+let cancelAddTransactionButton = document.getElementById("transaction-add-cancel");
+let cancelUpdateTransactionButton = document.getElementById("transaction-update-cancel");
+
+// Forms
+let addCategoryForm = document.getElementById("add-category-form");
+let addTransactionForm = document.getElementById("add-transaction-form");
+let updateCategoryForm = document.getElementById("update-category-form");
+let updateTransactionForm = document.getElementById("update-transaction-form");
+
+// Other stuff
+let table = new Table("budget-table");
+let budgetCategories = new Map();
+
 
 // Place Markers
-let currentBudget = null;
-let selectedCategory = null;
-let selectedTransaction = null;
+let currentBudget = null; // this will be an ID
+let selectedRow = null; // this will be a DOM Element
 
+/* FUNCTIONS */
 
-// Functions
-function makeBudgetLinks() {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.onload = function() {
-        let response = JSON.parse(this.responseText);
-        response.forEach(row => {
-            budgetLinksList.innerHTML += `
-                <a href="" id="budget-${row.ID}">${row.BudgetName}</a>
-            `;
-        });
-    };
-    xmlhttp.open("GET", "api/budgets/select.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send();
+// DB interaction functions
+function selectFromBudgets() {
+    return fetch("api/budgets/select.php").then(response => response.json());
 }
 
+function selectFromCategories() {
+    return fetch("api/categories/select.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}`
+    }).then(response => response.json());
+}
+
+function selectFromTransaction() {
+    return fetch("api/spending/select.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}`
+    }).then(response => response.json());
+}
+
+function insertIntoCategoriesTable(category, amount) {
+    return fetch("api/categories/insert.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}&category=${category}&ammount=${amount}`
+    });
+}
+
+function insertIntoTransactionsTable(description, category, amount, transactionDate) {
+    return fetch("api/spending/insert.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}&description=${description}&category=${category}&ammount=${amount}&transaction-date=${transactionDate}`
+    });
+}
+
+function updateCategoriesTable(ID, category, amount) {
+    return fetch("api/categories/update.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}&id=${ID}&category=${category}&ammount=${amount}`
+    });
+}
+
+function updateTransactionsTable(ID, description, category, amount, transactionDate) {
+    return fetch("api/spending/update.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}&id=${ID}&description=${description}&category=${category}&ammount=${amount}&date=${transactionDate}`
+    });
+}
+
+function deleteFromCategoriesTable(categoryID) {
+    return fetch("api/categories/delete.php", {
+        method: "POST", 
+        headers: {"Content-type": "application/x-www-form-urlencoded"}, 
+        body: `id=${categoryID}&budget-id=${currentBudget}`
+    });
+}
+
+function deleteFromTransactionsTable(TransactionID) {
+    return fetch("api/spending/delete.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `id=${TransactionID}&budget-id=${currentBudget}`
+    });
+}
+
+function selectTotalSpendingQuery() {
+    return fetch("api/queries/totalspending.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}`
+    }).then(response => response.json());
+}
+
+
+
+// UI Ineraction Functions
+function makeBudgetLinks() {
+    selectFromBudgets().then(rows => {
+        rows.forEach(budget => {budgetLinksList.innerHTML += `<a href="" id="budget-${budget.ID}">${budget.BudgetName}</a>`;});
+    });
+}
 
 function createNewBudget() {
     // create a new budget
 }
-
 
 function showBudgetCard() {
     background.style.display = "none";
     budgetCard.style.display = "initial";
 }
 
-
-function makeCategoriesTable(budgetID) {
-
-    // Mark current budget
-    currentBudget = budgetID;
-
-    // Create table element
-    table = document.createElement("table");
-    table.innerHTML = `
-            <table>
-                <tr><th>Category</th><th>Amount</th></tr>
-            `;
-
-    // Make request
-    let xmlhttp = new XMLHttpRequest();
-
-    // When request is ready
-    xmlhttp.onload = function() {
-        let response = JSON.parse(this.responseText);
-        response.forEach(row => {
-            table.innerHTML += `
-                <tr id="category-${row.ID}">
-                    <td>${row.Category}</td>
-                    <td>${row.Ammount}</td>
-                    <td class="table-images"><img id="edit" src="images/edit.png"><img id="delete" src="images/delete.png"></td>
-                </tr>
-            `;
+function makeCategoriesTable() {
+    selectFromCategories().then(rows => {
+        table.resetTable();
+        table.addHeaders(["Category", "Amount"]);
+        rows.forEach( (row) => {
+            table.addRow([row.Category, row.Ammount], `row-category-${row.ID}`);
+            budgetCategories.set(String(row.ID), [row.Category, row.Ammount]);
         });
-        table.innerHTML += `
-            </table>
-        `;
-        tableDiv.innerHTML = table.outerHTML;
-        let addCategoryButton = document.createElement("button");
-        addCategoryButton.innerHTML = '+ New Category';
-        addCategoryButton.id = "add-category";
-        addCategoryButton.classList.add("add-button");
-        tableDiv.appendChild(addCategoryButton);
-    };
-
-    // Send request
-    xmlhttp.open("POST", "api/categories/select.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${budgetID}`);
-
+    });
 }
-
 
 function makeTransactionsTable() {
-    // Create table element
-    table = document.createElement("table");
-    table.innerHTML = `
-            <table>
-                <tr><th>Description</th><th>Category</th><th>Amount</th><th>Date</th></tr>
-            `;
-
-    // Make a reqest object
-    let xmlhttp = new XMLHttpRequest();
-
-    // When request is ready
-    xmlhttp.onload = function() {
-        let response = JSON.parse(this.responseText);
-        response.forEach(row => {
-            table.innerHTML += `
-                <tr id="transaction-${row.ID}">
-                    <td>${row.ItemDescription}</td>
-                    <td>${row.Category}</td>
-                    <td>${row.Ammount}</td>
-                    <td>${row.TransactionDate}</td>
-                    <td class="table-images"><img id="edit-transaction" src="images/edit.png"><img id="delete-transaction" src="images/delete.png"></td>
-                </tr>
-            `;
-        });
-        table.innerHTML += "</table>";
-        tableDiv.innerHTML = table.outerHTML;
-
-
-        let addTransactionButton = document.createElement("button");
-        addTransactionButton.innerHTML = '+ New Transaction';
-        addTransactionButton.id = "add-transaction";
-        addTransactionButton.classList.add("add-button");
-        tableDiv.appendChild(addTransactionButton);
-    };
-
-    // Send request
-    xmlhttp.open("POST", "api/spending/select.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${currentBudget}`);
+    selectFromTransaction().then(rows => {
+        table.resetTable();
+        table.addHeaders(["Description", "Category", "Amount", "Date"]);
+        rows.forEach(row => {table.addRow([row.ItemDescription, row.Category, row.Ammount, row.TransactionDate], `row-transaction-${row.ID}`)});
+    });
 }
-
 
 function makeTotalsTable() {
-
-    // Create table element
-    table = document.createElement("table");
-    table.innerHTML = `
-            <table>
-                <tr><th>Category</th><th>Amount</th><th>Total Spent</th><th>Difference</th></tr>
-            `;
-
-    // Make a reqest object
-    let xmlhttp = new XMLHttpRequest();
-
-    // When request is ready
-    xmlhttp.onload = function() {
-        let response = JSON.parse(this.responseText);
-        response.forEach(row => {
-            table.innerHTML += `
-                <tr><td>${row.Category}</td><td>${row.Ammount}</td><td>${row.Total_Spent}</td><td>${row.Difference}</td></tr>
-            `;
+    selectTotalSpendingQuery().then(rows => {
+            table.resetTable();
+            table.addHeaders(["Category", "Amount Set", "Total Spent", "Remaining"]);
+            rows.forEach(row => {table.addRow([row.Category, row.Ammount, row.Total_Spent, row.Difference])
         });
-        table.innerHTML += "</table>";
-        tableDiv.innerHTML = table.outerHTML;
-    };
-
-    // Send request
-    xmlhttp.open("POST", "api/queries/totalspending.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${currentBudget}`);
+    });
 }
 
-
-function makeInsertCategoryForm() {
-    document.getElementById("add-category").remove();
-    let form = document.createElement("form");
-    form.id = "new-category-form";
-    form.classList.add("budget-forms")
-    form.innerHTML= `
-        <div id="input-wrapper">
-            <div>
-                <label>Category:</label><br>
-                <input id="category" type="text" placeholder="Category Name">
-            </div>
-            <div>
-                <label>Amount:</label><br>
-                <input id="amount" type="text" placeholder="$0.00">
-            </div>
-            </div>
-        <button id="save-category">Add Category</button>
-    `;
-    tableDiv.appendChild(form);
+function hideAllActionElements() {
+    addCategoryButton.style.display = "none";
+    editCategoryButton.style.display = "none";
+    deleteCategoryButton.style.display = "none";
+    addTransactionButton.style.display = "none";
+    editTransactionButton.style.display = "none";
+    deleteTransactionButton.style.display = "none";
+    addCategoryForm.style.display = "none";
+    addTransactionForm.style.display = "none";
+    updateCategoryForm.style.display = "none";
+    updateTransactionForm.style.display = "none";
 }
 
+function showUpdateCategoryForm() {
+    updateCategoryForm.style.display = "block";
+    let category = selectedRow.children[0].innerHTML;
+    let amount = selectedRow.children[1].innerHTML;
+    document.getElementById("category-update-category").value = category;
+    document.getElementById("category-update-amount").value = amount;
+}
 
-function makeUpdateCategoryForm(RowID) {
-    let addButton = document.getElementById("add-category");
-    if(!(addButton === null)) {
-        addButton.remove();
+function showUpdateTransactionForm() {
+    updateTransactionForm.style.display = "block";
+    let description = selectedRow.children[0].innerHTML;
+    let category = selectedRow.children[1].innerHTML;
+    let amount = selectedRow.children[2].innerHTML;
+    let transactionDate = selectedRow.children[3].innerHTML;
+    document.getElementById("transaction-update-description").value = description;
+    document.getElementById("transaction-update-category").value = category;
+    document.getElementById("transaction-update-amount").value = amount;
+    document.getElementById("transaction-update-date").value = transactionDate;
+}
+
+function changeSelectedRow (rowID) {
+    if(!(selectedRow === null)) {
+        selectedRow.style.backgroundColor = "initial";
+        selectedRow.style.color = "initial"
     }
+    selectedRow = document.getElementById(rowID);
+    selectedRow.style.backgroundColor = "#66999B";
+    selectedRow.style.color = "#fff"
+}
 
-    let addForm = document.getElementById("new-category-form");
-    if(!(addForm === null)) {
-        addForm.remove();
+function unSelectRow () {
+    if(!(selectedRow === null)) {
+        selectedRow.style.backgroundColor = "initial";
+        selectedRow.style.color = "initial"
     }
-    let updateForm = document.getElementById("update-category-form");
-    if(!(updateForm === null)) {
-        updateForm.remove();
-    }
-
-    let row = document.getElementById(RowID);
-    
-    if(!(selectedCategory === null)) {
-        selectedCategory.style.backgroundColor = "initial";
-        selectedCategory.style.color = "initial"
-    }
-    selectedCategory = row;
-    selectedCategory.style.backgroundColor = "#66999B";
-    selectedCategory.style.color = "#fff"
-
-    let category = row.children[0].innerHTML;
-    let amount = row.children[1].innerHTML;
-
-    let form = document.createElement("form");
-    form.id = "update-category-form";
-    form.classList.add("budget-forms")
-    form.innerHTML= `
-        <div id="input-wrapper">
-            <div>
-                <label>Category:</label><br>
-                <input id="category" type="text" value="${category}">
-            </div>
-            <div>
-                <label>Amount:</label><br>
-                <input id="amount" type="text" value="${amount}">
-            </div>
-            </div>
-        <button id="update-category">Update Category</button>
-    `;
-    tableDiv.appendChild(form);
+    selectedRow = null;
 }
 
 
-function makeInsertTransactionForm() {
-    document.getElementById("add-transaction").remove();
-    let form = document.createElement("form");
-    form.id = "new-transaction-form";
-    form.classList.add("budget-forms")
-    form.innerHTML= `
-        <div id="input-wrapper">
-            <div>
-                <label>Description:</label><br>
-                <input id="description" type="text" placeholder="Description">
-            </div>
-            <div>
-                <label>Category:</label><br>
-                <input id="category" type="text" placeholder="Category">
-            </div>
-            <div>
-                <label>Amount:</label><br>
-                <input id="amount" type="text" placeholder="$0.00">
-            </div>
-            <div>
-                <label>Date:</label><br>
-                <input id="date" type="text" placeholder="MM-DD-YYYY">
-            </div>
-        </div>
-        <button id="save-transaction">Add Transaction</button>
-    `;
-    tableDiv.appendChild(form);
-}
+/* EVENT LISTENERS */
 
-
-function makeUpdateTransactionForm(RowID) {
-
-    let addButton = document.getElementById("add-transaction");
-    if(!(addButton === null)) {
-        addButton.remove();
-    }
-
-    let addForm = document.getElementById("new-transaction-form");
-    if(!(addForm === null)) {
-        addForm.remove();
-    }
-    let updateForm = document.getElementById("update-transaction-form");
-    if(!(updateForm === null)) {
-        updateForm.remove();
-    }
-
-    let row = document.getElementById(RowID);
-    
-    if(!(selectedTransaction === null)) {
-        selectedTransaction.style.backgroundColor = "initial";
-        selectedTransaction.style.color = "initial"
-    }
-    selectedTransaction = row;
-    selectedTransaction.style.backgroundColor = "#66999B";
-    selectedTransaction.style.color = "#fff"
-
-    let description = row.children[0].innerHTML;
-    let category = row.children[1].innerHTML;
-    let amount = row.children[2].innerHTML;
-    let transactionDate = row.children[3].innerHTML;
-    
-
-    let form = document.createElement("form");
-    form.id = "update-transaction-form";
-    form.classList.add("budget-forms")
-    form.innerHTML= `
-        <div id="input-wrapper">
-            <div>
-                <label>Description:</label><br>
-                <input id="description" type="text" value="${description}">
-            </div>
-            <div>
-                <label>Category:</label><br>
-                <input id="category" type="text" value="${category}">
-            </div>
-            <div>
-                <label>Amount:</label><br>
-                <input id="amount" type="text" value="${amount}">
-            </div>
-            <div>
-                <label>Date:</label><br>
-                <input id="date" type="text" value="${transactionDate}">
-            </div>
-        </div>
-        <button id="update-transaction">Update Transaction</button>
-    `;
-    tableDiv.appendChild(form);
-}
-
-
-function insertIntoCategoriesTable(budgetID, category, amount) {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.onload = function () {
-        console.log(this.responseText)
-    }
-    xmlhttp.open("POST", "api/categories/insert.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${budgetID}&category=${category}&ammount=${amount}`);
-    makeCategoriesTable(currentBudget);
-}
-
-
-function insertIntoTransactionsTable(budgetID, description, category, amount, transactionDate) {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "api/spending/insert.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${budgetID}&description=${description}&category=${category}&ammount=${amount}&transaction-date=${transactionDate}`);
-    makeTransactionsTable();
-}
-
-
-function updateCategoriesTable(ID, category, amount) {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "api/categories/update.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${currentBudget}&id=${ID}&category=${category}&ammount=${amount}`);
-    makeCategoriesTable(currentBudget, makeAddCategoryButton);
-}
-
-
-function updateTransactionsTable(ID, description, category, amount, transactionDate) {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "api/spending/update.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`budget-id=${currentBudget}&id=${ID}&description=${description}&category=${category}&ammount=${amount}&date=${transactionDate}`);
-    makeTransactionsTable();
-}
-
-
-function deleteFromCategoriesTable(categoryID) {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "api/categories/delete.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`id=${categoryID}&budget-id=${currentBudget}`);
-    makeCategoriesTable(currentBudget);
-}
-
-
-function deleteFromTransactionsTable(TransactionID) {
-    let xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("POST", "api/spending/delete.php", true);
-    xmlhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xmlhttp.send(`id=${TransactionID}&budget-id=${currentBudget}`);
-    makeTransactionsTable();
-}
-
-
-// Event listeners
-
-// Clicking on a budget link
-budgetLinksList.addEventListener("click", function(event) {
-    event.preventDefault();
-    if(event.target.id.startsWith("budget")) {
+budgetLinksList.addEventListener("click", (click) => {
+    click.preventDefault();
+    if(click.target.id.startsWith("budget")) {
         showBudgetCard();
-        budgetID = event.target.id.substring(7);
-        makeCategoriesTable(budgetID);
+        currentBudget = click.target.id.substring(7);
+        makeCategoriesTable();
+        hideAllActionElements();
+        addCategoryButton.style.display = "initial";
+        budgetCategories.clear();
     }
 });
 
-// clicking on an action button
-tableDiv.addEventListener("click", function(event) {
-    if(event.target.id == "save-category") {
-        event.preventDefault();
-        let category = document.querySelector("input#category").value;
-        let amount = document.querySelector("input#amount").value;
-        insertIntoCategoriesTable(currentBudget, category, amount);
-    } else if(event.target.id == "delete") {
-        deleteFromCategoriesTable(event.target.parentElement.parentElement.id.substring(9));
-    } else if(event.target.id == "edit") {
-        makeUpdateCategoryForm(event.target.parentElement.parentElement.id);
-    } else if (event.target.id == "update-category") {
-        event.preventDefault();
-        let ID = selectedCategory.id.substring(9);
-        let category = document.querySelector("input#category").value;
-        let amount = document.querySelector("input#amount").value;
-        updateCategoriesTable(ID, category, amount);
-    } else if (event.target.id == "add-category") {
-        makeInsertCategoryForm();
-    } else if (event.target.id == "add-transaction") {
-        makeInsertTransactionForm();
-    } else if(event.target.id == "save-transaction") {
-        event.preventDefault();
-        let description = document.querySelector("input#description").value;
-        let category = document.querySelector("input#category").value;
-        let amount = document.querySelector("input#amount").value;
-        let transactionDate = document.querySelector("input#date").value;
-        insertIntoTransactionsTable(currentBudget, description, category, amount, transactionDate)
-    } else if(event.target.id == "delete-transaction") {
-        deleteFromTransactionsTable(event.target.parentElement.parentElement.id.substring(12));
-    } else if(event.target.id == "edit-transaction") {
-        makeUpdateTransactionForm(event.target.parentElement.parentElement.id)
-    } else if(event.target.id == "update-transaction") {
-        event.preventDefault();
-        let ID = selectedTransaction.id.substring(12);
-        let description = document.querySelector("input#description").value;
-        let category = document.querySelector("input#category").value;
-        let amount = document.querySelector("input#amount").value;
-        let transactionDate = document.querySelector("input#date").value;
-        updateTransactionsTable(ID, description, category, amount, transactionDate);
+tableDiv.addEventListener("click", (event) => {
+    if(event.target.parentElement.id.substring(0, 12) === "row-category") {
+        changeSelectedRow(event.target.parentElement.id)
+        hideAllActionElements();
+        addCategoryButton.style.display = "initial";
+        editCategoryButton.style.display = "initial";
+        deleteCategoryButton.style.display = "initial";        
+    } else if (event.target.parentElement.id.substring(0, 15) === "row-transaction") {
+        changeSelectedRow(event.target.parentElement.id)
+        hideAllActionElements();
+        addTransactionButton.style.display = "initial";
+        editTransactionButton.style.display = "initial";
+        deleteTransactionButton.style.display = "initial";  
     }
 });
 
-// This handles the nav bar links
-navBar.addEventListener("click", function(event) {
+actionArea.addEventListener("click", (click) => {
+    switch(click.target.id) {
+        case "add-category":
+            unSelectRow();
+            hideAllActionElements();
+            addCategoryForm.style.display = "block";
+        break;
+
+        case "category-add-cancel": 
+            hideAllActionElements();
+            addCategoryButton.style.display = "initial";
+        break;
+
+        case "edit-category":
+            hideAllActionElements();
+            showUpdateCategoryForm();
+        break;
+
+        case "category-update-cancel": 
+            unSelectRow();
+            hideAllActionElements();
+            addCategoryButton.style.display = "initial";
+        break;
+
+        case "delete-category":
+            deleteFromCategoriesTable(selectedRow.id.substring(13))
+                .then(table.deleteRow(selectedRow.id));
+            hideAllActionElements();
+            budgetCategories.delete(selectedRow.id.substring(13));
+            addCategoryButton.style.display = "initial";
+            selectedRow = null;
+        break;
+
+        case "add-transaction":
+            hideAllActionElements();
+            document.getElementById("transaction-add-category").innerHTML = '';
+            budgetCategories.forEach((row) => {
+                document.getElementById("transaction-add-category").innerHTML += `<option value="${row[0]}">${row[0]}</option>`
+            });
+            addTransactionForm.style.display = "block";
+        break;
+
+        case "transaction-add-cancel": 
+            hideAllActionElements();
+            addTransactionButton.style.display = "initial";
+        break;
+
+        case "edit-transaction":
+            hideAllActionElements();
+            document.getElementById("transaction-update-category").innerHTML = '';
+            budgetCategories.forEach((row) => {
+                document.getElementById("transaction-update-category").innerHTML += `<option value="${row[0]}">${row[0]}</option>`
+            });
+            showUpdateTransactionForm();
+        break;
+
+        case "transaction-update-cancel": 
+            unSelectRow();
+            hideAllActionElements();
+            addTransactionButton.style.display = "initial";
+        break;
+
+        case "delete-transaction":
+            deleteFromTransactionsTable(selectedRow.id.substring(16))
+                .then(table.deleteRow(selectedRow.id));
+            hideAllActionElements();
+            addTransactionButton.style.display = "initial";
+            selectedRow = null;
+        break;
+    }
+});
+
+addCategoryForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    if(event.target.id == "totals-tab") {
-        makeTotalsTable();
-    } else if(event.target.id == "transactions-tab") {
-        makeTransactionsTable();
-    } else if(event.target.id == "categories-tab") {
-        makeCategoriesTable(currentBudget);
+    let category = document.getElementById("category-add-category").value;
+    let amount = document.getElementById("category-add-amount").value;
+    insertIntoCategoriesTable(category, amount)
+        .then(response => response.json())
+        .then( (id) => {
+            table.addRow([category, amount], `row-category-${id}`);
+            budgetCategories.set(String(id), [category, amount]);
+            console.log(id, category, amount);
+        });
+    document.getElementById("category-add-category").value = '';
+    document.getElementById("category-add-amount").value = '';
+});
+
+updateCategoryForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    let ID = selectedRow.id.substring(13);
+    let category = document.getElementById("category-update-category").value;
+    let amount = document.getElementById("category-update-amount").value;
+    updateCategoriesTable(ID, category, amount)
+        .then(table.updateRow(selectedRow.id, [category, amount]));
+    budgetCategories.set(String(ID), [category, amount]);
+    unSelectRow();
+    hideAllActionElements();
+    addCategoryButton.style.display = "block";
+});
+
+addTransactionForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    let description = document.getElementById("transaction-add-description").value;
+    let category = document.getElementById("transaction-add-category").value;
+    let amount = document.getElementById("transaction-add-amount").value;
+    let transactionDate = document.getElementById("transaction-add-date").value;
+    insertIntoTransactionsTable(description, category, amount, transactionDate)
+        .then(response => response.json())
+        .then(id => table.addRow([description, category, amount, transactionDate], `row-category-${id}`));
+    document.getElementById("transaction-add-description").value = '';
+    document.getElementById("transaction-add-category").value = '';
+    document.getElementById("transaction-add-amount").value = '';
+    document.getElementById("transaction-add-date").value = '';
+});
+
+updateTransactionForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    let ID = selectedRow.id.substring(16);
+    let description = document.getElementById("transaction-update-description").value;
+    let category = document.getElementById("transaction-update-category").value;
+    let amount = document.getElementById("transaction-update-amount").value;
+    let transactionDate = document.getElementById("transaction-update-date").value;
+    updateTransactionsTable(ID, description, category, amount, transactionDate)
+        .then(table.updateRow(selectedRow.id, [description, category, amount, transactionDate]));
+    unSelectRow();
+    hideAllActionElements();
+    addTransactionButton.style.display = "block";
+});
+
+navBar.addEventListener("click", (click) => {
+    click.preventDefault();
+    switch(click.target.id) {
+        case "totals-tab":
+            makeTotalsTable();
+            hideAllActionElements();
+        break;
+
+        case "transactions-tab":
+            makeTransactionsTable();
+            hideAllActionElements();
+            addTransactionButton.style.display = "initial";
+        break;
+
+        case "categories-tab":
+            makeCategoriesTable();
+            hideAllActionElements();
+            addCategoryButton.style.display = "initial";
+        break;
     }
 });

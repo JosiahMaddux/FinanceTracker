@@ -37,4 +37,18 @@ $query = 'CREATE TABLE IF NOT EXISTS SpendingTransactions
     Ammount DECIMAL(12, 2),
     TransactionDate VARCHAR(20));';
 $result = mysqli_query($link, $query);
+
+// use this later
+//
+//
+// ALTER TABLE `SpendingTransactions`
+// 	ADD CONSTRAINT
+// 	FOREIGN KEY (`Category`) REFERENCES `BudgetCategories` (`Category`)
+// 	ON UPDATE CASCADE
+// 	ON DELETE RESTRICT;
+
+
+
 ?>
+
+

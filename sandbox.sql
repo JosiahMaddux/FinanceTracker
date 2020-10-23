@@ -61,7 +61,7 @@ SELECT
 	Category,
 	Ammount,
 	Total_Spent,
-	Total_Spent - Ammount AS Difference
+	Ammount - Total_Spent AS Difference
 FROM (
 	SELECT
 		PersonalBudgetCategories.Category,
@@ -74,43 +74,16 @@ FROM (
 		FROM
 			BudgetCategories
 		WHERE
-		BudgetID = 1
-	) AS PersonalBudgetCategories LEFT JOIN SpendingTransactions ON PersonalBudgetCategories.Category = SpendingTransactions.Category
+		BudgetID = 2
+	) AS PersonalBudgetCategories LEFT JOIN SpendingTransactions ON PersonalBudgetCategories.Category = SpendingTransactions.Category AND BudgetID = 2 
 	GROUP BY
 		PersonalBudgetCategories.Category,
 		PersonalBudgetCategories.Ammount
-) AS Budget
-UNION SELECT
-	"Total" AS Category,
-	SUM(Ammount) AS Ammount,
-	SUM(Total_Spent) AS Total_Spent,
-	SUM(Difference) AS Difference
-FROM (
-	SELECT
-		Category,
-		Ammount,
-		Total_Spent,
-		Total_Spent - Ammount AS Difference
-	FROM (
-		SELECT
-			PersonalBudgetCategories.Category,
-			PersonalBudgetCategories.Ammount,
-			IFNULL(SUM(SpendingTransactions.Ammount), 0) AS Total_Spent
-		FROM (
-			SELECT
-				Category,
-				Ammount
-			FROM
-				BudgetCategories
-			WHERE
-			BudgetID = 1
-		) AS PersonalBudgetCategories LEFT JOIN SpendingTransactions ON PersonalBudgetCategories.Category = SpendingTransactions.Category
-		GROUP BY
-			PersonalBudgetCategories.Category,
-			PersonalBudgetCategories.Ammount
-	) AS Budget
 ) AS TotalsBudget;
 
+
+-- so, the issue is, the command above pulls transactions that have the category name from the selected budget.
+-- The only thing it checks is name.
 
 
 

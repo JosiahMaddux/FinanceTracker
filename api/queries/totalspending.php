@@ -26,52 +26,22 @@
 						Total_Spent,
 						Ammount - Total_Spent AS Difference
 					FROM (
-						SELECT
-							PersonalBudgetCategories.Category,
-							PersonalBudgetCategories.Ammount,
-							IFNULL(SUM(SpendingTransactions.Ammount), 0) AS Total_Spent
-						FROM (
-							SELECT
-								Category,
-								Ammount
-							FROM
-								BudgetCategories
-							WHERE
-							BudgetID = ?
-						) AS PersonalBudgetCategories LEFT JOIN SpendingTransactions ON PersonalBudgetCategories.Category = SpendingTransactions.Category
-						GROUP BY
-							PersonalBudgetCategories.Category,
-							PersonalBudgetCategories.Ammount
-					) AS Budget
-					UNION SELECT
-						"Total:" AS Category,
-						SUM(Ammount) AS Ammount,
-						SUM(Total_Spent) AS Total_Spent,
-						SUM(Difference) AS Difference
+					SELECT
+						PersonalBudgetCategories.Category,
+						PersonalBudgetCategories.Ammount,
+						IFNULL(SUM(SpendingTransactions.Ammount), 0) AS Total_Spent
 					FROM (
 						SELECT
 							Category,
-							Ammount,
-							Total_Spent,
-							Ammount - Total_Spent AS Difference
-						FROM (
-							SELECT
-								PersonalBudgetCategories.Category,
-								PersonalBudgetCategories.Ammount,
-								IFNULL(SUM(SpendingTransactions.Ammount), 0) AS Total_Spent
-							FROM (
-								SELECT
-									Category,
-									Ammount
-								FROM
-									BudgetCategories
-								WHERE
-								BudgetID = ?
-							) AS PersonalBudgetCategories LEFT JOIN SpendingTransactions ON PersonalBudgetCategories.Category = SpendingTransactions.Category
-							GROUP BY
-								PersonalBudgetCategories.Category,
-								PersonalBudgetCategories.Ammount
-						) AS Budget
+							Ammount
+						FROM
+							BudgetCategories
+						WHERE
+						BudgetID = ?
+					) AS PersonalBudgetCategories LEFT JOIN SpendingTransactions ON PersonalBudgetCategories.Category = SpendingTransactions.Category AND BudgetID = ? 
+					GROUP BY
+						PersonalBudgetCategories.Category,
+						PersonalBudgetCategories.Ammount
 					) AS TotalsBudget;';
         $stmt->prepare($query);
         $stmt->bind_param("ii", $budgetID, $budgetID);
