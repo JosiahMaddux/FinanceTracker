@@ -18,7 +18,7 @@
     // Check to see if table belongs to user
     $stmt = $mysqli->stmt_init();
     $stmt->prepare("SELECT UserID FROM Budgets WHERE ID = ?;");
-    $stmt->bind_param("i", $userID);
+    $stmt->bind_param("i", $budgetID);
     $stmt->execute();
     $stmt->bind_result($result_userID);
     $stmt->fetch();
@@ -28,7 +28,16 @@
         $stmt->execute();
 
         // return the id of the new row
+
+        http_response_code(200);
         echo $mysqli->insert_id;
+
+        // http_response_code(400);
+        // echo json_encode(array("message" => "You cannot have duplicate categories in the same budget", "error" => "1062"));
+    } else {
+        // Send error message
+        http_response_code(401);
+        echo json_encode(array("message" => "Unauthorized Request"));
     }
 
 

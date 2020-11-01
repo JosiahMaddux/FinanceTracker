@@ -40,6 +40,9 @@ $result = mysqli_query($link, $query);
 
 // use this later
 //
+// ALTER TABLE `budgetcategories` ADD UNIQUE( `BudgetID`, `Category`);
+//
+// Also this
 //
 // ALTER TABLE `SpendingTransactions`
 // 	ADD CONSTRAINT

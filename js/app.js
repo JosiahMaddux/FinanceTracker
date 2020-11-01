@@ -47,6 +47,9 @@ let navBar = document.getElementById("card-nav");
 let actionArea = document.getElementById("action-area");
 
 // Buttons
+let newBudgetButton = document.getElementById("new-budget-button");
+let newBudgetCancelButton = document.getElementById("new-budget-cancel");
+
 let addCategoryButton = document.getElementById("add-category");
 let editCategoryButton = document.getElementById("edit-category");
 let deleteCategoryButton = document.getElementById("delete-category");
@@ -60,6 +63,7 @@ let cancelAddTransactionButton = document.getElementById("transaction-add-cancel
 let cancelUpdateTransactionButton = document.getElementById("transaction-update-cancel");
 
 // Forms
+let newBudgetForm = document.getElementById("new-budget-form");
 let addCategoryForm = document.getElementById("add-category-form");
 let addTransactionForm = document.getElementById("add-transaction-form");
 let updateCategoryForm = document.getElementById("update-category-form");
@@ -72,6 +76,7 @@ let budgetCategories = new Map();
 
 // Place Markers
 let currentBudget = null; // this will be an ID
+let selectedBudgetLink = null;
 let selectedRow = null; // this will be a DOM Element
 
 /* FUNCTIONS */
@@ -95,6 +100,14 @@ function selectFromTransaction() {
         headers: {"Content-type": "application/x-www-form-urlencoded"},
         body: `budget-id=${currentBudget}`
     }).then(response => response.json());
+}
+
+function insertIntoBudgetsTable(budgetName) {
+    return fetch("api/budgets/insert.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-name=${budgetName}`
+    });
 }
 
 function insertIntoCategoriesTable(category, amount) {
@@ -157,13 +170,10 @@ function selectTotalSpendingQuery() {
 
 // UI Ineraction Functions
 function makeBudgetLinks() {
+    budgetLinksList.innerHTML = '';
     selectFromBudgets().then(rows => {
         rows.forEach(budget => {budgetLinksList.innerHTML += `<a href="" id="budget-${budget.ID}">${budget.BudgetName}</a>`;});
     });
-}
-
-function createNewBudget() {
-    // create a new budget
 }
 
 function showBudgetCard() {
@@ -191,11 +201,17 @@ function makeTransactionsTable() {
 }
 
 function makeTotalsTable() {
+    let totalSet = 0;
+    let totalSpent = 0;
     selectTotalSpendingQuery().then(rows => {
-            table.resetTable();
-            table.addHeaders(["Category", "Amount Set", "Total Spent", "Remaining"]);
-            rows.forEach(row => {table.addRow([row.Category, row.Ammount, row.Total_Spent, row.Difference])
+        table.resetTable();
+        table.addHeaders(["Category", "Amount Set", "Total Spent", "Remaining"]);
+        rows.forEach(row => {
+            table.addRow([row.Category, row.Ammount, row.Total_Spent, row.Difference], "total");
+            totalSet += Number(row.Ammount);
+            totalSpent += Number(row.Total_Spent);
         });
+        table.addRow(["Total:", totalSet.toFixed(2), totalSpent.toFixed(2), (totalSet - totalSpent).toFixed(2)], "table-total-row");
     });
 }
 
@@ -218,6 +234,7 @@ function showUpdateCategoryForm() {
     let amount = selectedRow.children[1].innerHTML;
     document.getElementById("category-update-category").value = category;
     document.getElementById("category-update-amount").value = amount;
+    document.getElementById("category-update-category").focus();
 }
 
 function showUpdateTransactionForm() {
@@ -230,6 +247,7 @@ function showUpdateTransactionForm() {
     document.getElementById("transaction-update-category").value = category;
     document.getElementById("transaction-update-amount").value = amount;
     document.getElementById("transaction-update-date").value = transactionDate;
+    document.getElementById("transaction-update-description").focus();
 }
 
 function changeSelectedRow (rowID) {
@@ -238,7 +256,7 @@ function changeSelectedRow (rowID) {
         selectedRow.style.color = "initial"
     }
     selectedRow = document.getElementById(rowID);
-    selectedRow.style.backgroundColor = "#66999B";
+    selectedRow.style.backgroundColor = "#79d491";
     selectedRow.style.color = "#fff"
 }
 
@@ -251,7 +269,29 @@ function unSelectRow () {
 }
 
 
+function selectBudgetLink() {
+    selectedBudgetLink = document.getElementById(`budget-${currentBudget}`);
+    selectedBudgetLink.style.color = '#000';
+    selectedBudgetLink.style.fontWeight = "bold"
+    // document.getElementById("title-header").innerText = "Budget Name";
+}
+
+function unselectBudgetLink() {
+    if(selectedBudgetLink) {
+        selectedBudgetLink.style.color = '#333';
+        selectedBudgetLink.style.fontWeight = "normal"
+        selectedBudgetLink = null;
+    }
+}
+
+
 /* EVENT LISTENERS */
+
+newBudgetButton.addEventListener("click", (click) => {
+    click.preventDefault();
+    document.getElementById("new-budget-modal").style.display = "block";
+    document.getElementById("budget-name-input").focus();
+});
 
 budgetLinksList.addEventListener("click", (click) => {
     click.preventDefault();
@@ -262,7 +302,13 @@ budgetLinksList.addEventListener("click", (click) => {
         hideAllActionElements();
         addCategoryButton.style.display = "initial";
         budgetCategories.clear();
+        unselectBudgetLink();
+        selectBudgetLink();
     }
+});
+
+newBudgetCancelButton.addEventListener("click", (click) => {
+    document.getElementById("new-budget-modal").style.display = "none";
 });
 
 tableDiv.addEventListener("click", (event) => {
@@ -287,6 +333,7 @@ actionArea.addEventListener("click", (click) => {
             unSelectRow();
             hideAllActionElements();
             addCategoryForm.style.display = "block";
+            document.getElementById("category-add-category").focus();
         break;
 
         case "category-add-cancel": 
@@ -321,6 +368,7 @@ actionArea.addEventListener("click", (click) => {
                 document.getElementById("transaction-add-category").innerHTML += `<option value="${row[0]}">${row[0]}</option>`
             });
             addTransactionForm.style.display = "block";
+            document.getElementById("transaction-add-description").focus();
         break;
 
         case "transaction-add-cancel": 
@@ -353,19 +401,32 @@ actionArea.addEventListener("click", (click) => {
     }
 });
 
+newBudgetForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    let budgetName = document.getElementById("budget-name-input").value;
+    insertIntoBudgetsTable(budgetName).then(makeBudgetLinks());
+    document.getElementById("new-budget-modal").style.display = "none";
+    document.getElementById("budget-name-input").value = '';
+});
+
+document.getElementById("rename-budget-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+});
+
 addCategoryForm.addEventListener("submit", (event) => {
     event.preventDefault();
     let category = document.getElementById("category-add-category").value;
-    let amount = document.getElementById("category-add-amount").value;
+    let amount = Number(document.getElementById("category-add-amount").value).toFixed(2);
     insertIntoCategoriesTable(category, amount)
         .then(response => response.json())
         .then( (id) => {
             table.addRow([category, amount], `row-category-${id}`);
             budgetCategories.set(String(id), [category, amount]);
-            console.log(id, category, amount);
+            console.log(id);
         });
     document.getElementById("category-add-category").value = '';
     document.getElementById("category-add-amount").value = '';
+    document.getElementById("category-add-category").focus();
 });
 
 updateCategoryForm.addEventListener("submit", (event) => {
@@ -385,7 +446,7 @@ addTransactionForm.addEventListener("submit", (event) => {
     event.preventDefault();
     let description = document.getElementById("transaction-add-description").value;
     let category = document.getElementById("transaction-add-category").value;
-    let amount = document.getElementById("transaction-add-amount").value;
+    let amount = Number(document.getElementById("transaction-add-amount").value).toFixed(2);
     let transactionDate = document.getElementById("transaction-add-date").value;
     insertIntoTransactionsTable(description, category, amount, transactionDate)
         .then(response => response.json())
@@ -394,6 +455,7 @@ addTransactionForm.addEventListener("submit", (event) => {
     document.getElementById("transaction-add-category").value = '';
     document.getElementById("transaction-add-amount").value = '';
     document.getElementById("transaction-add-date").value = '';
+    document.getElementById("transaction-add-description").focus();
 });
 
 updateTransactionForm.addEventListener("submit", (event) => {
@@ -429,5 +491,17 @@ navBar.addEventListener("click", (click) => {
             hideAllActionElements();
             addCategoryButton.style.display = "initial";
         break;
+
+        case "rename-tab":
+            document.getElementById("rename-budget-modal").style.display = "block";
+            document.getElementById("budget-rename-input").value = '';
+            document.getElementById("budget-rename-input").focus();
+        break;
+
+        case "delete-tab":
+
+        break;
     }
 });
+
+

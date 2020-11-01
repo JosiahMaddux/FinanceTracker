@@ -15,7 +15,7 @@
     // Check to see if table belongs to user
     $stmt = $mysqli->stmt_init();
     $stmt->prepare("SELECT UserID FROM Budgets WHERE ID = ?;");
-    $stmt->bind_param("i", $userID);
+    $stmt->bind_param("i", $budgetID);
     $stmt->execute();
     $stmt->bind_result($result_userID);
     $stmt->fetch();

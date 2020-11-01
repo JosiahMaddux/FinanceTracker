@@ -10,20 +10,11 @@
 
     // Get parameter
     $userID = $_SESSION["ID"];
-    $budgetID = $_POST["budget-id"];
     $budgetName = $_POST["budget-name"];
 
-    // Prepare and execute SQL SELECT statement
-    // Check to see if table belongs to user
+    
     $stmt = $mysqli->stmt_init();
-    $stmt->prepare("SELECT UserID FROM Budgets WHERE ID = ?;");
-    $stmt->bind_param("i", $userID);
+    $stmt->prepare("INSERT INTO Budgets (UserID, BudgetName) VALUES (?, ?);");
+    $stmt->bind_param("is", $userID, $budgetName);
     $stmt->execute();
-    $stmt->bind_result($result_userID);
-    $stmt->fetch();
-    if($result_userID == $userID) {
-        $stmt->prepare("INSERT INTO Budgets (UserID, BudgetName) VALUES (?, ?);");
-        $stmt->bind_param("is", $userID, $budgetName);
-        $stmt->execute();
-    }
 ?>

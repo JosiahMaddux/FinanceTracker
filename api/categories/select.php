@@ -15,18 +15,22 @@
     // Check to see if table belongs to user
     $stmt = $mysqli->stmt_init();
     $stmt->prepare("SELECT UserID FROM Budgets WHERE ID = ?;");
-    $stmt->bind_param("i", $userID);
+    $stmt->bind_param("i", $budgetID);
     $stmt->execute();
     $stmt->bind_result($result_userID);
     $stmt->fetch();
     if($result_userID == $userID) {
-        $stmt->prepare("SELECT * FROM BudgetCategories WHERE BudgetID = ?;");
+        $stmt->prepare("SELECT * FROM BudgetCategories WHERE BudgetID = ? ORDER BY Category;");
         $stmt->bind_param("i", $budgetID);
         $stmt->execute();
         $result = $stmt->get_result();
 
         // Send the results as an array of JSON objects
         echo json_encode($result->fetch_all(MYSQLI_ASSOC));
+    } else {
+
+        // Send error message
+        http_response_code(401);
     }
 
 ?>

@@ -15,12 +15,12 @@
     // Check to see if table belongs to user
     $stmt = $mysqli->stmt_init();
     $stmt->prepare("SELECT UserID FROM Budgets WHERE ID = ?;");
-    $stmt->bind_param("i", $userID);
+    $stmt->bind_param("i", $budgetID);
     $stmt->execute();
     $stmt->bind_result($result_userID);
     $stmt->fetch();
     if($result_userID == $userID) {
-        $stmt->prepare("SELECT * FROM SpendingTransactions WHERE BudgetID = ?;");
+        $stmt->prepare("SELECT * FROM SpendingTransactions WHERE BudgetID = ? ORDER BY TransactionDate;");
         $stmt->bind_param("i", $budgetID);
         $stmt->execute();
         $result = $stmt->get_result();
