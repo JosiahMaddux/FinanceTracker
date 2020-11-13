@@ -80,6 +80,7 @@ div#side {
     /* overflow: auto; */
     padding-top: 41px;
     box-sizing: border-box;
+    overflow-y: auto;
 }
 
 div#budgets-menu {
@@ -126,7 +127,7 @@ nav#card-nav {
     font-family: 'Lucida Sans Unicode';
 }
 
-nav div a {
+nav a {
     font-family: 'Andale Mono', monospace;
 }
 
@@ -233,6 +234,7 @@ input:focus {
     z-index: 2;
     background: rgba(0, 0, 0, 0.5);
     display: none;
+    border: black solid 1px;
 }
 
 .modal-content {
@@ -246,3 +248,27 @@ input:focus {
     border: solid 1px rgba(0, 0, 0, 0.8);
     padding: 50px;
 }
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    padding-top: 5px;
+    display: none;
+}
+
+nav#card-nav .dropdown-content > a {
+    padding: 7.5px 15px;
+    display: block;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    position: absolute;
+    min-width: max-content;
+    background-color: #2b5ba1;
+    min-height: max-content;
+    border-bottom: solid 1px rgba(40, 40, 40, 0.4);
+  }

@@ -4,7 +4,7 @@
         // Database Config Variables
         private $host = 'localhost';
         private $user = 'root';
-        private $password = '';
+        private $password = 'prosk8er.aZ95';
         private $database = 'finance_tracker';
 
         public function getMysqli() {

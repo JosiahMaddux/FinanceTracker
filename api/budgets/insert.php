@@ -17,4 +17,7 @@
     $stmt->prepare("INSERT INTO Budgets (UserID, BudgetName) VALUES (?, ?);");
     $stmt->bind_param("is", $userID, $budgetName);
     $stmt->execute();
+
+    http_response_code(200);
+    echo $mysqli->insert_id;
 ?>

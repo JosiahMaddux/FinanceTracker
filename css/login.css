@@ -1,0 +1,18 @@
+* {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h1 {
+    width: 100%;
+    text-align: center;
+}
+
+input {
+    width: 100%;
+}
+
+.small-container {
+    width: 90%;
+    max-width: 440px;
+    margin: auto;
+}

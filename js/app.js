@@ -28,6 +28,10 @@ class Table {
         row.innerHTML = updatedRow;
     }
 
+    makeTotalRow() {
+        
+    }
+
     // takes an ID of a row, then deletes that row
     deleteRow(rowID) {
         document.getElementById(rowID).remove();
@@ -50,6 +54,8 @@ let actionArea = document.getElementById("action-area");
 let newBudgetButton = document.getElementById("new-budget-button");
 let newBudgetCancelButton = document.getElementById("new-budget-cancel");
 
+let renameBudgetCancelButton = document.getElementById("rename-budget-cancel")
+
 let addCategoryButton = document.getElementById("add-category");
 let editCategoryButton = document.getElementById("edit-category");
 let deleteCategoryButton = document.getElementById("delete-category");
@@ -64,6 +70,7 @@ let cancelUpdateTransactionButton = document.getElementById("transaction-update-
 
 // Forms
 let newBudgetForm = document.getElementById("new-budget-form");
+let renameBudgetForm = document.getElementById("rename-budget-form")
 let addCategoryForm = document.getElementById("add-category-form");
 let addTransactionForm = document.getElementById("add-transaction-form");
 let updateCategoryForm = document.getElementById("update-category-form");
@@ -106,40 +113,49 @@ function insertIntoBudgetsTable(budgetName) {
     return fetch("api/budgets/insert.php", {
         method: "POST",
         headers: {"Content-type": "application/x-www-form-urlencoded"},
-        body: `budget-name=${budgetName}`
-    });
+        body: `budget-name=${encodeURIComponent(budgetName)}`
+    }).then(response => response.json());
 }
 
 function insertIntoCategoriesTable(category, amount) {
     return fetch("api/categories/insert.php", {
         method: "POST",
         headers: {"Content-type": "application/x-www-form-urlencoded"},
-        body: `budget-id=${currentBudget}&category=${category}&ammount=${amount}`
-    });
+        body: `budget-id=${currentBudget}&category=${encodeURIComponent(category)}&ammount=${amount}`
+    }).then(response => response.json());
 }
 
 function insertIntoTransactionsTable(description, category, amount, transactionDate) {
     return fetch("api/spending/insert.php", {
         method: "POST",
         headers: {"Content-type": "application/x-www-form-urlencoded"},
-        body: `budget-id=${currentBudget}&description=${description}&category=${category}&ammount=${amount}&transaction-date=${transactionDate}`
-    });
+        body: `budget-id=${currentBudget}&description=${encodeURIComponent(description)}&category=${encodeURIComponent(category)}&ammount=${amount}&transaction-date=${transactionDate}`
+    }).then(response => response.json());
+}
+
+function updateBudgetsTable(budgetName) {
+    console.log(encodeURIComponent(budgetName));
+    return fetch("api/budgets/update.php", {
+        method: "POST",
+        headers: {"Content-type": "application/x-www-form-urlencoded"},
+        body: `budget-id=${currentBudget}&budget-name=${encodeURIComponent(budgetName)}`
+    }).then(response => response.json());
 }
 
 function updateCategoriesTable(ID, category, amount) {
     return fetch("api/categories/update.php", {
         method: "POST",
         headers: {"Content-type": "application/x-www-form-urlencoded"},
-        body: `budget-id=${currentBudget}&id=${ID}&category=${category}&ammount=${amount}`
-    });
+        body: `budget-id=${currentBudget}&id=${ID}&category=${encodeURIComponent(category)}&ammount=${amount}`
+    }).then(response => response.json());
 }
 
 function updateTransactionsTable(ID, description, category, amount, transactionDate) {
     return fetch("api/spending/update.php", {
         method: "POST",
         headers: {"Content-type": "application/x-www-form-urlencoded"},
-        body: `budget-id=${currentBudget}&id=${ID}&description=${description}&category=${category}&ammount=${amount}&date=${transactionDate}`
-    });
+        body: `budget-id=${currentBudget}&id=${ID}&description=${encodeURIComponent(description)}&category=${encodeURIComponent(category)}&ammount=${amount}&date=${transactionDate}`
+    }).then(response => response.json());
 }
 
 function deleteFromCategoriesTable(categoryID) {
@@ -147,7 +163,7 @@ function deleteFromCategoriesTable(categoryID) {
         method: "POST", 
         headers: {"Content-type": "application/x-www-form-urlencoded"}, 
         body: `id=${categoryID}&budget-id=${currentBudget}`
-    });
+    }).then(response => response.json());
 }
 
 function deleteFromTransactionsTable(TransactionID) {
@@ -155,7 +171,7 @@ function deleteFromTransactionsTable(TransactionID) {
         method: "POST",
         headers: {"Content-type": "application/x-www-form-urlencoded"},
         body: `id=${TransactionID}&budget-id=${currentBudget}`
-    });
+    }).then(response => response.json());
 }
 
 function selectTotalSpendingQuery() {
@@ -256,7 +272,7 @@ function changeSelectedRow (rowID) {
         selectedRow.style.color = "initial"
     }
     selectedRow = document.getElementById(rowID);
-    selectedRow.style.backgroundColor = "#79d491";
+    selectedRow.style.backgroundColor = "#9FC473";
     selectedRow.style.color = "#fff"
 }
 
@@ -296,6 +312,7 @@ newBudgetButton.addEventListener("click", (click) => {
 budgetLinksList.addEventListener("click", (click) => {
     click.preventDefault();
     if(click.target.id.startsWith("budget")) {
+        document.getElementById("budget-nav").style.display = "flex";
         showBudgetCard();
         currentBudget = click.target.id.substring(7);
         makeCategoriesTable();
@@ -309,6 +326,10 @@ budgetLinksList.addEventListener("click", (click) => {
 
 newBudgetCancelButton.addEventListener("click", (click) => {
     document.getElementById("new-budget-modal").style.display = "none";
+});
+
+renameBudgetCancelButton.addEventListener("click", (click) => {
+    document.getElementById("rename-budget-modal").style.display = "none";
 });
 
 tableDiv.addEventListener("click", (event) => {
@@ -409,8 +430,12 @@ newBudgetForm.addEventListener("submit", (event) => {
     document.getElementById("budget-name-input").value = '';
 });
 
-document.getElementById("rename-budget-form").addEventListener("submit", (event) => {
+renameBudgetForm.addEventListener("submit", (event) => {
     event.preventDefault();
+    updateBudgetsTable(document.getElementById("budget-rename-input").value)
+        .then(makeBudgetLinks());
+        document.getElementById("rename-budget-modal").style.display = "none";
+
 });
 
 addCategoryForm.addEventListener("submit", (event) => {
@@ -418,7 +443,6 @@ addCategoryForm.addEventListener("submit", (event) => {
     let category = document.getElementById("category-add-category").value;
     let amount = Number(document.getElementById("category-add-amount").value).toFixed(2);
     insertIntoCategoriesTable(category, amount)
-        .then(response => response.json())
         .then( (id) => {
             table.addRow([category, amount], `row-category-${id}`);
             budgetCategories.set(String(id), [category, amount]);
@@ -449,7 +473,6 @@ addTransactionForm.addEventListener("submit", (event) => {
     let amount = Number(document.getElementById("transaction-add-amount").value).toFixed(2);
     let transactionDate = document.getElementById("transaction-add-date").value;
     insertIntoTransactionsTable(description, category, amount, transactionDate)
-        .then(response => response.json())
         .then(id => table.addRow([description, category, amount, transactionDate], `row-category-${id}`));
     document.getElementById("transaction-add-description").value = '';
     document.getElementById("transaction-add-category").value = '';
@@ -494,7 +517,7 @@ navBar.addEventListener("click", (click) => {
 
         case "rename-tab":
             document.getElementById("rename-budget-modal").style.display = "block";
-            document.getElementById("budget-rename-input").value = '';
+            document.getElementById("budget-rename-input").value = document.getElementById(`budget-${currentBudget}`).innerText;
             document.getElementById("budget-rename-input").focus();
         break;
 

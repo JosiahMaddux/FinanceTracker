@@ -23,7 +23,7 @@
     $stmt->fetch();
     if($result_userID == $userID) {
         $stmt->prepare("UPDATE Budgets SET BudgetName = ? WHERE ID = ?;");
-        $stmt->bind_param("is", $budgetName, $budgetID);
+        $stmt->bind_param("si", $budgetName, $budgetID);
         $stmt->execute();
     }
 ?>
